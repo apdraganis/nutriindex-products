@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NutriIndex.Products.Data;
+using NutriIndex.Products.Services;
+using NutriIndex.Products.Services.RabbitMq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 // PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
+
+// Register catalog business logic service
+builder.Services.AddScoped<ProductCatalogService>();
+// Register background consumer worker to start up automatically
+builder.Services.AddHostedService<ProductScoredConsumer>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
