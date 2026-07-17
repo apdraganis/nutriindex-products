@@ -1,0 +1,107 @@
+## Visual Studio / ASP.NET Core Web API .gitignore
+
+# ========================
+# Visual Studio
+# ========================
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# ========================
+# Build output
+# ========================
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# ========================
+# .NET / NuGet
+# ========================
+*.nupkg
+*.snupkg
+**/[Pp]ackages/
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet v3+
+.nuget/
+
+# ========================
+# ASP.NET Core specific
+# ========================
+# Published output
+publish/
+**/publish/
+
+# Secrets / environment config (never commit these)
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+.env
+.env.*
+
+# ========================
+# Rider / JetBrains
+# ========================
+.idea/
+*.sln.iml
+
+# ========================
+# ReSharper
+# ========================
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# ========================
+# Test results
+# ========================
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+TestResults/
+coverage/
+coverage-report/
+
+# ========================
+# Publish profiles
+# ========================
+**/Properties/PublishProfiles/
+
+# ========================
+# Docker
+# ========================
+# Uncomment if you don't want to track local Docker overrides
+# docker-compose.override.yml
+
+# ========================
+# OS generated files
+# ========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ========================
+# Misc
+# ========================
+*.bak
+*.tmp
+*.temp
+*.orig
+nbproject/
