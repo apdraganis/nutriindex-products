@@ -9,19 +9,17 @@ public class ProductCatalogService(AppDbContext _context)
 {
     public async Task HandleProductScoredAsync(ProductScoredEvent scoredEvent)
     {
-        var payload = scoredEvent.Payload;
-
         // 1. Try to find an existing product record
-        var product = await _context.Products.FirstOrDefaultAsync(p => p.Barcode == payload.Barcode);
+        var product = await _context.Products.FirstOrDefaultAsync(p => p.Barcode == scoredEvent.Barcode);
 
         if (product == null)
         {
             // 2. Map new event payload to a new entity
             product = new Product
             {
-                Barcode = payload.Barcode,
-                CostPer100Kcal = payload.Scores.CostPer100Kcal,
-                CostPer10gProtein = payload.Scores.CostPer10gProtein,
+                Barcode = scoredEvent.Barcode,
+                CostPer100Kcal = scoredEvent.Scores.GetValueOrDefault("KCAL"),
+                CostPer10gProtein = scoredEvent.Scores.GetValueOrDefault("PROTEIN_G"),
                 LastUpdatedAt = DateTime.UtcNow
             };
 
@@ -30,8 +28,8 @@ public class ProductCatalogService(AppDbContext _context)
         else
         {
             // 3. Map and update existing entity scores
-            product.CostPer100Kcal = payload.Scores.CostPer100Kcal;
-            product.CostPer10gProtein = payload.Scores.CostPer10gProtein;
+            product.CostPer100Kcal = scoredEvent.Scores.GetValueOrDefault("KCAL");
+            product.CostPer10gProtein = scoredEvent.Scores.GetValueOrDefault("PROTEIN_G");
             product.LastUpdatedAt = DateTime.UtcNow;
         }
 

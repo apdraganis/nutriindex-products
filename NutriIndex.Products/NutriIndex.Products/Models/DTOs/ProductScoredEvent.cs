@@ -1,10 +1,9 @@
 ﻿namespace NutriIndex.Products.Models.DTOs;
 
 public record ProductScoredEvent(
-    Guid EventId,
-    DateTime Timestamp,
     Guid CorrelationId,
-    ProductScoredPayload Payload
+    string Barcode,
+    Dictionary<string, decimal> Scores
 );
 
 public record ProductScoredPayload(

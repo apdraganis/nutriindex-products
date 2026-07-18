@@ -55,20 +55,30 @@ public class ProductScoredConsumer : BackgroundService
 
                     _logger.LogInformation("Received ProductScoredEvent from RabbitMQ");
 
+                    // Use Web-style defaults (automatically configures camelCase parsing)???
+                    var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
                     // 4. Deserialize the message
                     var scoredEvent = JsonSerializer.Deserialize<ProductScoredEvent>(message, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     });
 
-                    if (scoredEvent != null)
+                    // Validate the incoming payload before touching db.
+                    if (scoredEvent == null || string.IsNullOrWhiteSpace(scoredEvent.Barcode))
                     {
-                        // 5. Create a temporary DI scope to resolve the EF Core DB services safely
-                        using var scope = _serviceProvider.CreateScope();
-                        var catalogService = scope.ServiceProvider.GetRequiredService<ProductCatalogService>();
+                        _logger.LogWarning("Discarding malformed message. Raw payload: {RawMessage}", message);
 
-                        await catalogService.HandleProductScoredAsync(scoredEvent);
+                        // Acknowledge so it's removed from the queue and doesn't loop forever
+                        await _channel.BasicAckAsync(@event.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
+                        return;
                     }
+
+                    // 5. Create a temporary DI scope to resolve the EF Core DB services safely
+                    using var scope = _serviceProvider.CreateScope();
+                    var catalogService = scope.ServiceProvider.GetRequiredService<ProductCatalogService>();
+
+                    await catalogService.HandleProductScoredAsync(scoredEvent);
 
                     // 6. Acknowledge the message (remove it from queue)
                     await _channel.BasicAckAsync(@event.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
@@ -76,8 +86,10 @@ public class ProductScoredConsumer : BackgroundService
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error processing ProductScoredEvent. Message kept on queue.");
-                    // Requeue message for retry if it fails
-                    await _channel.BasicNackAsync(@event.DeliveryTag, multiple: false, requeue: true, cancellationToken: stoppingToken);
+
+                    // In production, publish to a Dead Letter Queue.
+                    // For local MVP I reject it WITHOUT requeuing to prevent infinite loops.
+                    await _channel.BasicNackAsync(@event.DeliveryTag, multiple: false, requeue: false, cancellationToken: stoppingToken);
                 }
             };
 
